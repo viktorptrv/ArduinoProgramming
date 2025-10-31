@@ -1,0 +1,22 @@
+int y, x;
+int speed = 10;
+int speed2 = 10;
+
+void setup(){
+  size(640, 480);
+  y = height/2;
+  x = width/2;
+}
+
+void draw(){
+  background(255);
+  ellipse(x, y, 100, 100);
+  if((y+10 > height) || (y - 10 < 0)){
+    speed = -speed;
+  }
+  if ((x + 10 > width) || (x - 10 < 0)){
+    speed2 = -speed2;
+  }
+  y += speed;
+  x += speed2;
+}
