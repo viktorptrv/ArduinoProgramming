@@ -1,0 +1,8 @@
+Basic implementation of a voting system. Button input is gathered with interrupts. 
+Used modules:
+- Arduino Uno R4 Minima;
+- 2 LEDS;
+- 2 Basic Buttons;
+- LCD Display with I2C Hat;
+Schematic: 
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Project Schematic with Fritzing")
