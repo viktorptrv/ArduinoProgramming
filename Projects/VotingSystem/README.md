@@ -5,4 +5,4 @@ Used modules:
 - 2 Basic Buttons;
 - LCD Display with I2C Hat;
 Schematic: 
-![Project Schematic](https://github.com/viktorptrv/ArduinoProgramming/blob/main/Projects/VotingSystem/votingSystem_bb.png) "Project Schematic with Fritzing")
+![Project Schematic](https://github.com/viktorptrv/ArduinoProgramming/blob/main/Projects/VotingSystem/votingSystem_bb.png) "Project Schematic with Fritzing"
