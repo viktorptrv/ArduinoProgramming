@@ -1,0 +1,1 @@
+Controls a servo motor and an ultrasonic sensor to scan the surroundings. The servo sweeps left and right while the ultrasonic sensor measures distance and sends the readings to the Serial Monitor. When the servo reaches its angle limits, the direction of movement reverses to continue scanning.
