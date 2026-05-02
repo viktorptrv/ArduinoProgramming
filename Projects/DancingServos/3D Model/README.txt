@@ -1,1 +1,4 @@
 - Here you can find the stl files for the 3d model and also the fusion 360 files if you want to modify them.
+- To build the stand you need:
+  - 3d Printer + 3d printer filament (i've used PLA+)
+  - 8 x M2.5*8 bolts
