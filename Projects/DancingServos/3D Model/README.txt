@@ -2,3 +2,6 @@
 - To build the stand you need:
   - 3d Printer + 3d printer filament (i've used PLA+)
   - 8 x M2.5*8 bolts
+  - 16 SG 90 Servos
+  - Arduino UNO
+  -  PCA9685 
