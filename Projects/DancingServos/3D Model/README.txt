@@ -1,0 +1,1 @@
+- Here you can find the stl files for the 3d model and also the fusion 360 files if you want to modify them.
