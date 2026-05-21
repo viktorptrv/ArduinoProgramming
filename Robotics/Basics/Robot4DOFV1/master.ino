@@ -22,18 +22,17 @@ U8G2_SSD1309_128X64_NONAME2_F_4W_SW_SPI u8g2(
 volatile bool sendPos = false;
 volatile bool manualPos = false;
 byte send_butt = 2;
-byte mode_butt = 3;
-byte NegativeZ = 4;
-byte PositiveZ = 5;
-byte NegativeY = 6;
-byte PositiveY = 7;
-byte NegativeX = 8;
-byte PositiveX = 9;
+byte NegativeZ = 3;
+byte PositiveZ = 4;
+byte NegativeY = 5;
+byte PositiveY = 6;
+byte NegativeX = 7;
+byte PositiveX = 12;
 int PosX = 0; int PosY = 0; int PosZ = 0;
-int pos[] = {PosX, PosY, PosZ};
+int* pos[] = {&PosX, &PosY, &PosZ};
 char posBuffer[4];
 
-byte allButtons[8] = {send_butt, mode_butt, NegativeZ,
+byte allButtons[8] = {send_butt,  NegativeZ,
                      PositiveZ, NegativeY, PositiveY,
                      NegativeX, PositiveX};
 
@@ -43,8 +42,7 @@ void setup() {
     pinMode(allButtons[i], INPUT_PULLUP);
   }
 
-  attachInterrupt(digitalPinToInterrupt(send_butt), send_command, FALLING);
-  attachInterrupt(digitalPinToInterrupt(mode_butt), change_mod, FALLING);
+  attachInterrupt(digitalPinToInterrupt(send_butt), send_position_to_robot, FALLING);
   Serial.begin(9600);
   Serial.println("Arduino is starting");
   u8g2.begin();
@@ -103,16 +101,16 @@ void loop() {
 
   if (sendPos == true || manualPos == true){
     send_position_to_robot();
-    delay(200);
+    Serial.println("Send pos");
   }
 
   u8g2.clearBuffer();
 
   draw_menu();
+  delay(100);
 
   u8g2.sendBuffer();
-
-  update_menu();
+  delay(100);
 }
 
 void draw_menu()
@@ -128,28 +126,27 @@ void draw_menu()
   h = u8g2.getAscent() - u8g2.getDescent();
   w = u8g2.getDisplayWidth();
 
+  
+
   for (i = 0; i < MENU_ITEMS; i++)
   {
     d = (w - u8g2.getStrWidth(menu_strings[i])) / 2;
 
-    if (i == menu_current)
-    {
-      // Highlight selected item
-      u8g2.drawBox(0, i * h, w, h);
+     // Highlight selected item
+    u8g2.drawBox(0, i * h, w, h);
 
       // Inverted text
-      u8g2.setDrawColor(0);
-      u8g2.drawStr(d, i * h, menu_strings[i]);
-      clear_pos_buffer();
-      create_char_buffer(pos[i]);
-      u8g2.drawStr(d + 30, i* h, posBuffer);
-
+    u8g2.setDrawColor(0);
+    u8g2.drawStr(d, i * h, menu_strings[i]);
+    clear_pos_buffer();
+    create_char_buffer(*pos[i]);
+    u8g2.drawStr(d + 30, i* h, posBuffer);
+  
       // Restore normal drawing
-      u8g2.setDrawColor(1);
-    }
-    else
-    {
-      u8g2.drawStr(d, i * h, menu_strings[i]);
+    u8g2.setDrawColor(1);
+    if (sendPos == true){
+      d = (w - u8g2.getStrWidth("Moving robot...")) / 2;
+      u8g2.drawStr(d, 4 * h, "Moving robot...");
     }
   }
 }
@@ -162,26 +159,10 @@ void clear_pos_buffer(void){
 
 void create_char_buffer(int num){
   snprintf(posBuffer, sizeof(posBuffer), "%d", num);
-}
-
-void update_menu(void)
-{
-
-}
-
-void send_command(void){
-  sendPos = !sendPos; // flip bool value
-}
-
-void change_mod(void){
-  //manualPos = !manualPos; // flip bool value
-  menu_current++;
-  if (menu_current >= 3){
-    menu_current = 0;
-  }
+  Serial.print("Buffer string: ");
+  Serial.println(posBuffer);
 }
 
 void send_position_to_robot(void){
-  Serial.println("Robot Pos Function called");
-  sendPos = !sendPos;
+  sendPos = true;
 }
