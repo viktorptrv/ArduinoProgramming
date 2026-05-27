@@ -1,9 +1,10 @@
-// DS3240 -> degree * 7.407408 + 500 ; 500us = 0d, 1500us = 90d, 2500us = 180d
-// MG996R -> 
+// DS3240 -> degree * 7.407407407407407 + 500 ; 500us = 0d, 1500us = 90d, 2500us = 270d
+// MG996R -> degree * 11.11111111111111 + 500 ;500us = 0d, 1500us = 90d, 2500us = 180d
 
 #include <Servo.h>
 
-float dsservo_us_per_degree = 7.407408;
+const float DSservo_us_per_degree = 7.407407407407407;
+const float MGservo_us_per_degree = 11.11111111111111;
 
 Servo servo;
 
