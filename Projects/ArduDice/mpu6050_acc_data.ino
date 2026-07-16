@@ -1,6 +1,7 @@
 #include <Wire.h>
 
-#define MPU_ADDR 0x70
+#define MPU_ADDR 0x68
+#define ACC_RANGE 8   // depends on how many G's its configured, since this one is +-4G => 8
 
 uint16_t gyro_output[3];
 uint16_t acc_output[3];
@@ -14,7 +15,9 @@ uint16_t acc_temp_value[3][1000];
 uint16_t gyro_x, gyro_y, gyro_z;
 uint16_t accel_x, accel_y, accel_z, temperature;
 
+const double acc_value_change = 0.12207217517;    // ACC_RANGE * 1000 / 65535
 
+char tmp_str[7];
 
 void setup() {
   // put your setup code here, to run once:
@@ -26,14 +29,25 @@ void setup() {
   Wire.endTransmission();
 
   Serial.begin(9600);
-  setup_gyro();
-  setup_acc();
+  //setup_gyro();
+  //setup_acc();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   read_data();
+  Serial.print("Acceleration on X axis -> ");
+  Serial.println(calculate_g(accel_x));
+  Serial.print("Acceleration on Y axis -> ");
+  Serial.println(calculate_g(accel_y));
+  Serial.print("Acceleration on Z axis -> ");
+  Serial.println(calculate_g(accel_z));
   delay(100);
+}
+
+char* convert_int16_to_str(int16_t i) { // converts int16 to string. Moreover, resulting strings will have the same length in the debug monitor.
+  sprintf(tmp_str, "%6d", i);
+  return tmp_str;
 }
 
 void read_data(void){
@@ -50,6 +64,18 @@ void read_data(void){
   gyro_x = Wire.read()<<8 | Wire.read(); // reading registers: 0x43 (GYRO_XOUT_H) and 0x44 (GYRO_XOUT_L)
   gyro_y = Wire.read()<<8 | Wire.read(); // reading registers: 0x45 (GYRO_YOUT_H) and 0x46 (GYRO_YOUT_L)
   gyro_z = Wire.read()<<8 | Wire.read(); // reading registers: 0x47 (GYRO_ZOUT_H) and 0x48 (GYRO_ZOUT_L)
+
+  /* Just for DEBUG
+  Serial.print("aX = "); Serial.print(convert_int16_to_str(accel_x));
+  Serial.print(" | aY = "); Serial.print(convert_int16_to_str(accel_y));
+  Serial.print(" | aZ = "); Serial.print(convert_int16_to_str(accel_z));
+  // the following equation was taken from the documentation [MPU-6000/MPU-6050 Register Map and Description, p.30]
+  Serial.print(" | tmp = "); Serial.print(temperature/340.00+36.53);
+  Serial.print(" | gX = "); Serial.print(convert_int16_to_str(gyro_x));
+  Serial.print(" | gY = "); Serial.print(convert_int16_to_str(gyro_y));
+  Serial.print(" | gZ = "); Serial.print(convert_int16_to_str(gyro_z));
+  Serial.println();*/
+  delay(500);
 }
 
 void calibrate_offsets(void){
@@ -107,4 +133,16 @@ void setup_acc(void){
   Wire.write(0x1C);
   Wire.write(0x01);
   Wire.endTransmission();
+}
+
+double calculate_g(int sens_value){
+  double result = ((double)sens_value * acc_value_change) / 1000;
+  Serial.print("Into Calculate_g, value of sensor:");
+  Serial.println(sens_value);
+  Serial.print("Value change: ");
+  Serial.println(acc_value_change);
+  Serial.print("Result: ");
+  Serial.println(result);
+  delay(2000);
+  return result;
 }
