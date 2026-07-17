@@ -22,12 +22,12 @@ const int matrix_six[64]          = {1,1,0,0,0,0,1,1, 1,1,0,0,0,0,1,1, 0,0,0,0,0
 */
 
 // Matrix code used for direction X, Y you can add another 8x8 WS board on the side for Z axis
-const int matrix_y_minus[64]       = {0,0,1,1,0,0,0,0, 0,0,1,1,1,1,0,0, 0,0,0,0,1,1,0,0, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 0,0,0,0,1,1,0,0, 0,0,1,1,1,1,0,0, 0,0,0,0,1,1,0,0};
-const int matrix_y_plus[64]        = {0,0,0,0,1,1,0,0, 0,0,1,1,1,1,0,0, 0,0,1,1,0,0,0,0, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 0,0,0,0,1,1,0,0, 0,0,1,1,1,1,0,0, 0,0,1,1,0,0,0,0};
+const int matrix_y_minus[64]       = {0,0,0,1,0,0,0,0, 0,0,1,1,0,0,0,0, 0,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 0,1,1,1,1,1,1,1, 0,0,1,1,0,0,0,0, 0,0,0,1,0,0,0,0};
+const int matrix_y_plus[64]        = {0,0,0,0,1,0,0,0, 0,0,0,0,1,1,0,0, 1,1,1,1,1,1,1,0, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,0, 0,0,0,0,1,1,0,0, 0,0,0,0,1,0,0,0};
 const int matrix_x_plus[64]        = {0,0,0,1,1,0,0,0, 0,0,1,1,1,1,0,0, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0};
-const int matrix_x_minus[64]       = {0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0, 0,0,1,1,1,1,0,0, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1};
-const int matrix_z_plus[64]  = {0,0,1,1,1,1,0,0, 0,1,1,1,1,1,1,0, 1,1,0,0,0,0,1,1, 1,1,0,1,1,0,1,1, 1,1,0,1,1,0,1,1, 1,1,0,0,0,0,1,1, 0,1,1,1,1,1,1,0, 0,0,1,1,1,1,0,0};
-const int matrix_z_minus[64] = {0,0,1,1,1,1,0,0, 0,1,1,0,0,1,1,0, 1,1,0,1,0,0,1,1, 1,1,0,0,1,0,1,1, 1,1,0,1,0,0,1,1, 1,1,0,0,0,1,1,1, 0,1,1,0,0,1,1,0, 0,0,1,1,1,1,0,0};
+const int matrix_x_minus[64]       = {0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0, 0,0,0,1,1,0,0,0, 1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1, 0,0,1,1,1,1,0,0, 0,0,0,1,1,0,0,0};
+const int matrix_z_plus[64]        = {0,0,1,1,1,1,0,0, 0,1,1,1,1,1,1,0, 1,1,0,0,0,0,1,1, 1,1,0,1,1,0,1,1, 1,1,0,1,1,0,1,1, 1,1,0,0,0,0,1,1, 0,1,1,1,1,1,1,0, 0,0,1,1,1,1,0,0};
+const int matrix_z_minus[64]       = {0,0,1,1,1,1,0,0, 0,1,1,0,0,1,1,0, 1,1,0,1,0,0,1,1, 1,1,0,0,1,0,1,1, 1,1,0,1,0,0,1,1, 1,1,0,0,0,1,1,1, 0,1,1,0,0,1,1,0, 0,0,1,1,1,1,0,0};
 
 uint16_t gyro_output[3];
 uint16_t acc_output[3];
@@ -37,7 +37,7 @@ uint16_t gyro_temp_value[3][1000];
 uint16_t acc_temp_value[3][1000];
 uint16_t gyro_x, gyro_y, gyro_z;
 uint16_t accel_x, accel_y, accel_z, temperature;
-uint16_t old_accel_x, old_accel_y, old_accel_z;
+double old_accel_x, old_accel_y, old_accel_z;
 const double acc_value_change = 0.12207217517;    // ACC_RANGE * 1000 / 65535
 
 char tmp_str[7];
@@ -66,42 +66,62 @@ void setup() {
 }
 
 void loop() {
-uint16_t iRes_x, iRes_y, iRes_z;  
+double iRes_x, iRes_y, iRes_z;  
+double value_x, value_y, value_z;
   // put your main code here, to run repeatedly:
   read_data();
-  iRes_x = calculate_g(accel_x) - old_accel_x;
-  iRes_y = calculate_g(accel_y) - old_accel_y;
-  iRes_z = calculate_g(accel_z) - old_accel_z;
-  if (iRes_x > 0.3){
+  value_x = calculate_g(accel_x);
+  value_y = calculate_g(accel_y);
+  value_z = calculate_g(accel_z);
+
+  Serial.print("Value_x = ");
+  Serial.println(value_x);
+  Serial.print("Value_y = ");
+  Serial.println(value_y);
+  Serial.print("Value_z = ");
+  Serial.println(value_z);
+
+  iRes_x = value_x - old_accel_x;
+  iRes_y = value_y - old_accel_y;
+  iRes_z = value_z - old_accel_z;
+
+  Serial.print("iRes_x = ");
+  Serial.println(iRes_x);
+  Serial.print("iRes_y = ");
+  Serial.println(iRes_y);
+  Serial.print("iRes_z = ");
+  Serial.println(iRes_z);
+  
+  if (iRes_x > 0.05){
     turn_leds(matrix_x_plus);
+    Serial.println("Matrix_x_plus");
   }
-  else if (iRes_x < -0.3){
+  else if (iRes_x < -0.05){
     turn_leds(matrix_x_minus);
+    Serial.println("Matrix_x_minus");
   }
 
-  delay(250);
-
-  if (iRes_y > 0.3){
+  if (iRes_y > 0.05){
     turn_leds(matrix_y_plus);
+    Serial.println("Matrix_y_plus");
   }
-  else if (iRes_y < -0.3){
+  else if (iRes_y < -0.05){
     turn_leds(matrix_y_minus);
+    Serial.println("Matrix_y_minus");
   }
 
-  delay(250);
-
-  if (iRes_z > 0.3){
+  if (iRes_z > 0.05){
     turn_leds(matrix_z_plus);
+    Serial.println("Matrix_z_plus");
   }
-  else if (iRes_z < -0.3){
+  else if (iRes_z < -0.05){
     turn_leds(matrix_z_minus);
+    Serial.println("Matrix_z_minus");
   }
 
-  delay(250);
-  // save old values for next iteration
-  old_accel_x = calculate_g(accel_x);
-  old_accel_y = calculate_g(accel_y);
-  old_accel_z = calculate_g(accel_z);
+  old_accel_x = value_x;
+  old_accel_y = value_y;
+  old_accel_z = value_z;
 
 }
 
@@ -120,7 +140,7 @@ CRGB colour;
     leds[i] = arr[i] ? colour : CRGB::Black;
   }
   FastLED.show();
-  delay(500);
+  delay(750);
   FastLED.clear();
   FastLED.show();
   delay(100);
@@ -224,6 +244,5 @@ double calculate_g(int sens_value){
   Serial.println(acc_value_change);
   Serial.print("Result: ");
   Serial.println(result);
-  delay(2000);
   return result;
 }
