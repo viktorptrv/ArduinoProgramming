@@ -10,7 +10,7 @@ const volatile float time_passed = 0.00000104448;
 signed long long int volatile millis_pas = 0;
 
 static inline void init_timer(void){
-  TCCR0A |= (1 << WGM01)                // Enable CTC mode
+  TCCR0A |= (1 << WGM01);                // Enable CTC mode
   TCCR0B |= (1 << CS02) | (1 << CS00);  // Setting prescaler to 1024
   TIMSK0 |= (1 << OCIE0A);              // Enabling timer Interrupt
   OCR0A = 255;                // 15625
