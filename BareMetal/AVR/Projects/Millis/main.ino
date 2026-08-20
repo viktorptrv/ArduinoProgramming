@@ -1,22 +1,24 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <stdint.h>
 
 #define CPU_MHZ     16000000
 #define prescaler   1024
 
 const volatile float time_passed = 0.00000104448;
-int volatile millis_pas = 0;
+signed long long int volatile millis_pas = 0;
 
 static inline void init_timer(void){
+  TCCR0A |= (1 << WGM01)                // Enable CTC mode
   TCCR0B |= (1 << CS02) | (1 << CS00);  // Setting prescaler to 1024
   TIMSK0 |= (1 << OCIE0A);              // Enabling timer Interrupt
-  OCR0A = 255;          // 15625
+  OCR0A = 255;                // 15625
   sei();
 }
 
 ISR(TIMER0_COMPA_vect){
-  millis_pas += 104448;
+  millis_pas += 16384;
 }
 
 double get_time(void){
@@ -24,7 +26,7 @@ double get_time(void){
   double return_value;
   cSREG = SREG;
   cli();
-  return_value = millis_pas / 100000000000;
+  return_value = (millis_pas * 1.0) / (1000000.0);
   SREG = cSREG;
   Serial.print("Current millis:");
   Serial.println(return_value);
