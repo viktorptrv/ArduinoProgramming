@@ -26,8 +26,9 @@ double get_time(void){
   double return_value;
   cSREG = SREG;
   cli();
-  return_value = (millis_pas * 1.0) / (1000000.0);
+  return_value = millis_pas;
   SREG = cSREG;
+  return_value = (return_value * 1.0) / (1000000.0);
   Serial.print("Current millis:");
   Serial.println(return_value);
   return return_value;
