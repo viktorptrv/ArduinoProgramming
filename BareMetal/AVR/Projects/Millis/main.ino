@@ -35,6 +35,8 @@ double get_time(void){
 }
 
 int main(void){
+  DDRB |= (1 << 4);      // For the led
+  PORTB |= (1 << 3);    // Making the port pull up
   double current = 0;
   double now = 0;
   init_timer();
