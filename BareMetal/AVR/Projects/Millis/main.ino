@@ -6,7 +6,6 @@
 #define CPU_MHZ     16000000
 #define prescaler   1024
 
-const volatile float time_passed = 0.00000104448;
 signed long long int volatile millis_pas = 0;
 
 static inline void init_timer(void){
@@ -35,16 +34,32 @@ double get_time(void){
 }
 
 int main(void){
-  DDRB |= (1 << 4);      // For the led
-  PORTB |= (1 << 3);    // Making the port pull up
-  double current = 0;
-  double now = 0;
+  double lastDebounceTime;
+  uint8_t lastState = 1, button_state;
+
+  DDRB |= (1 << 1);      // For the led
+  PORTB |= (1 << 0);    // Making the port pull up
+  
   init_timer();
   Serial.begin(9600);
+
+
   while(1){
-    if ((get_time()-current) > 10){
-      Serial.println("timed:");
-      Serial.print(get_time());
+    if ((PIND & (1 << 0)) != lastState){
+      lastDebounceTime = get_time();
     }
+
+    if ((get_time() - lastDebounceTime) > 10){
+      if ((PIND & (1 << 0)) != button_state){
+        button_state = (PIND & (1 << 0));
+        if (button_state == 0){
+          PORTB |= (1 << 1);
+          _delay_ms(500);
+          PORTB &=~ (1 << 1);
+        }
+      }
+    }
+
+    lastState = (PIND & (1 << 0));
   }
 }
