@@ -28,30 +28,32 @@ double get_time(void){
   return_value = millis_pas;
   SREG = cSREG;
   return_value = (return_value * 1.0) / (1000000.0);
-  Serial.print("Current millis:");
-  Serial.println(return_value);
   return return_value;
 }
 
 int main(void){
   double lastDebounceTime;
-  uint8_t lastState = 1, button_state;
+  uint8_t lastState = 0, button_state;
 
   DDRB |= (1 << 1);      // For the led
-  PORTB |= (1 << 0);    // Making the port pull up
+  PORTD |= (1 << 2);    // Making the port pull up
   
   init_timer();
   Serial.begin(9600);
-
-
+  Serial.print("PORTB VALUE: ");
+  Serial.println(PIND);
+  _delay_ms(1500);
   while(1){
-    if ((PIND & (1 << 0)) != lastState){
+    if ((PIND & (1 << 2)) != lastState){
+      Serial.println("Different than last state");
       lastDebounceTime = get_time();
     }
 
-    if ((get_time() - lastDebounceTime) > 10){
-      if ((PIND & (1 << 0)) != button_state){
-        button_state = (PIND & (1 << 0));
+    if ((get_time() - lastDebounceTime) > 0.1){
+      if ((PIND & (1 << 2)) != button_state){
+        button_state = (PIND & (1 << 2));
+        Serial.print("State of PINB = ");
+        Serial.println(button_state);
         if (button_state == 0){
           PORTB |= (1 << 1);
           _delay_ms(500);
@@ -60,6 +62,6 @@ int main(void){
       }
     }
 
-    lastState = (PIND & (1 << 0));
+    lastState = (PIND & (1 << 2));
   }
 }
