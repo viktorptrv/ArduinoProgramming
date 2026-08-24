@@ -11,7 +11,7 @@ static inline void init_timer1_servo(void){
   // We have to setup TIMER1 to give a pulse every 20ms
   // We are going to use FASTPWM mode, counter max in ICR1
   TCCR1A |= (1 << WGM11) | (1 << WGM10);                   // Set Fast PWM
-  TCCR1B |= (1 << WGM12);    // Set CTC
+  TCCR1B |= (1 << WGM12) | (1 << WMG13);    // Set CTC
   TCCR1B |= (1 << CS11) | (1 << CS10);   // prescaler /16 only — NOT CS10 too
   ICR1 = 4999;             // 20000 ticks * 1µs = 20ms                         // Sets direct output on PB1
   TCCR1A |= (1 << COM1A1);                  // Clear OC1A/OC1B on compare match, set OC1A/OC1B at BOTTOM (non-inverting mode)
