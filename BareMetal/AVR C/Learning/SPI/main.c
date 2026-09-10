@@ -41,7 +41,7 @@ void EEPROM_clearAll(void);
 static inline void init_SPI(void){
   DDRB |= (1 << SS) | (1 << MOSI) | (1 << SCK);
   PORTB |= (1 << SS) | (1 << SCK);    // pull the slave pin high
-  PORTN |= (1 << MISO);
+  PORTD |= (1 << MISO);
 
   SPCR |= (1 << MSTR) | (1 <<SPR0);
   SPCR |= (1 << SPE);
@@ -59,7 +59,7 @@ static inline void EEPROM_send16BitAddress(uint16_t address){
 
 static inline uint8_t EEPROM_ReadStatus(void){
   SLAVESELECT;
-  SPI_tradeBytes(EEPROM_RDSR);
+  SPI_tradeByte(EEPROM_RDSR);
   SPI_tradeByte(0);
   SLAVEDESELECT;
   return SPDR;
@@ -89,7 +89,7 @@ uint16_t EEPROM_readWord(uint16_t address){
   word_result = (SPDR << 8);
   SPI_tradeByte(0);
   word_result |= SPDR;
-  SLAVDESELECT;
+  SLAVEDESELECT;
   return word_result;
 }
 
@@ -102,7 +102,7 @@ void EEPROM_writeByte(uint16_t address, uint8_t byte){
   EEPROM_send16BitAddress(address);
   SPI_tradeByte(byte);
   SLAVEDESELECT;
-  while(EEPROM_readStatus & (1 << EEPROM_WRITE_IN_PROGRESS));
+  while(EEPROM_ReadStatus & (1 << EEPROM_WRITE_IN_PROGRESS));
 }
 
 void EEPROM_writeWord(uint16_t address, uint16_t byte){
@@ -115,7 +115,7 @@ void EEPROM_writeWord(uint16_t address, uint16_t byte){
   SPI_tradeByte((uint8_t) (byte >> 8));
   SPI_tradeByte((uint8_t) byte);
   SLAVEDESELECT;
-  while(EEPROM_readStatus & (1 << EEPROM_WRITE_IN_PROGRESS));
+  while(EEPROM_ReadStatus & (1 << EEPROM_WRITE_IN_PROGRESS));
 }
 
 void EEPROM_clearAll(void){
@@ -123,7 +123,7 @@ void EEPROM_clearAll(void){
 }
 
 int main(void){
-  init_spi();
+  init_SPI();
   Serial.begin(9600);
 
   while(1){
