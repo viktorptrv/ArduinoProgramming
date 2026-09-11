@@ -102,7 +102,7 @@ void EEPROM_writeByte(uint16_t address, uint8_t byte){
   EEPROM_send16BitAddress(address);
   SPI_tradeByte(byte);
   SLAVEDESELECT;
-  while(EEPROM_ReadStatus & (1 << EEPROM_WRITE_IN_PROGRESS));
+  while(EEPROM_ReadStatus() & (1 << EEPROM_WRITE_IN_PROGRESS));
 }
 
 void EEPROM_writeWord(uint16_t address, uint16_t byte){
@@ -115,11 +115,24 @@ void EEPROM_writeWord(uint16_t address, uint16_t byte){
   SPI_tradeByte((uint8_t) (byte >> 8));
   SPI_tradeByte((uint8_t) byte);
   SLAVEDESELECT;
-  while(EEPROM_ReadStatus & (1 << EEPROM_WRITE_IN_PROGRESS));
+  while(EEPROM_ReadStatus() & (1 << EEPROM_WRITE_IN_PROGRESS));
 }
 
 void EEPROM_clearAll(void){
-  SLAVESELECT;
+  uint8_t i;
+  uint16_t pageAddress = 0;
+  while(pageAddress <= EEPROM_MEM_END){
+    EEPROM_writeEnable();
+    SLAVESELECT;
+    SPI_tradeByte(EEPROM_WRITE);
+    EEPROM_send16BitAddress(pageAddress);
+    for(i = 0; i < EEPROM_BYTE_PER_PAGE; i++){
+      SPI_tradeByte(0);
+    }
+    SLAVEDESELECT;
+    pageAddress += EEPROM_BYTE_PER_PAGE;
+     while(EEPROM_ReadStatus() & (1 << EEPROM_WRITE_IN_PROGRESS));
+  }
 }
 
 int main(void){
