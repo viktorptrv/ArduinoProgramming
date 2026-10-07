@@ -3,77 +3,82 @@
 #include <util/twi.h>
 
 void initI2C(void);
-void i2cWaitForComplete(void);
-void i2cStart(void);
-void i2cStop(void);
-void i2cSend(uint8_t data);
-uint8_t i2cReadAck(void);
-uint8_t i2cReadNock(void);
-
-// Sets pullups and init bus speed to 100khz at fcpu == 8mhz
 void initI2C(void){
-  TWBR = 72;      // 100khz
-  TWCR |= (1 << TWEN);    // Enable i2c
+  TWSR &=~ (1 << TWPS1) | (1 << TWPS0);
+  TWBR = 72;
+  TWCR = (1 << TWEN);
 }
 
-// waits until hardware sets the twint flag
-void i2cWaitForComplete(void){
-  loop_until_bit_is_set(TWCR, TWINT);
+void check_bit(void);
+void check_bit(void){
+  while (!(TWCR & (1<<TWINT)));
 }
 
-// sends a start condition
-void i2cStart(void){
-  TWCR = (1 << TWINT) | (1 << TWSTA) | (1 << TWEN);
-  i2cWaitForComplete();
-  if ((TWSR & 0xF8) != TW_START){
-    Serial.println("Error occured with i2cStart");
-  }
+void I2C_start(void);
+void I2C_start(void){
+  TWCR = (1<<TWINT) | (1<<TWSTA) | (1 << TWEN);
+  check_bit(); 
+  //TWCR &=~ (1 << TWSTA);
 }
 
-// sends a stop condition
-void i2cStop(void){
-  TWCR = (1 << TWINT) | (1 << TWEN) | (1 << TWSTO);
-}
-
-// loads data and sends it
-void i2cSend(uint8_t data){
+void IC2_send_data(uint8_t data);
+void IC2_send_data(uint8_t data){
   TWDR = data;
   TWCR = (1 << TWINT) | (1 << TWEN);
-  i2cWaitForComplete();
-  if ((TWSR & 0xF8) != TW_MR_SLA_ACK){
-    Serial.println("Error occured with i2cSend");
+  check_bit();
+}
+
+int I2C_check_status(uint8_t status_code);
+int I2C_check_status(uint8_t status_code){
+  if ((TWSR & 0xF8) != status_code){
+    return 0;
+  }
+  else{
+    return 1;
   }
 }
 
-// read in from slave
-uint8_t i2cReadAck(void){
-  TWCR = (1 << TWINT) | ( 1 << TWEA) | (1 << TWEN);
-  i2cWaitForComplete();
-  return (TWDR);
-}
-
-// read in from slave
-uint8_t i2cReadNock(void){
-  TWCR = (1 << TWINT) | (1 << TWEN);
-  i2cWaitForComplete();
-  return (TWDR);
+void I2C_stop(void);
+void I2C_stop(void){
+  TWCR = (1<<TWINT) | (1<<TWEN)| (1<<TWSTO); 
 }
 
 int main(void){
+  uint8_t address = 1;
+  uint8_t status;
   Serial.begin(9600);
   initI2C();
-  int address = 1;
+  
+  _delay_ms(1000);
   while(1){
-    _delay_ms(1000);
-    for(;address < 128; address++){
-      i2cStart();
-      i2cSend(address << 1);
-      if ((TWSR & 0xF8) == TW_MR_SLA_ACK){
-        Serial.print("Address Found: ");
-        Serial.println(address << 1);
-        return;
-      }
-      i2cStop();
+    // First send start bit
+    I2C_start();
+
+    // Check if start bit was successful
+    status = I2C_check_status(TW_START);
+    if(status == 1){
+      Serial.println("Successfull start");
     }
+    else{
+      Serial.println("Could not send start");
+    }
+
+    // Then send SLA+W
+    IC2_send_data(address << 1);
+
+    // Check the status of that data;
+    status = I2C_check_status(TW_MT_SLA_ACK);
+    if(status == 1){
+      Serial.print("Address found!: ");
+      //Serial.println(address << 1);
+      I2C_stop();
+      return 0;
+    }
+
+    address++;
+    I2C_stop();
+    
   }
+
+  return 0;
 }
