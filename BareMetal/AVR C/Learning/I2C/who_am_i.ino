@@ -4,7 +4,7 @@
 
 void initI2C(void);
 void initI2C(void){
-  TWSR &=~ (1 << TWPS1) | (1 << TWPS0);
+  TWSR &= ~((1 << TWPS1) | (1 << TWPS0));
   TWBR = 72;
   TWCR = (1 << TWEN);
 }
@@ -77,7 +77,7 @@ int main(void){
 
     address++;
     I2C_stop();
-    
+
   }
 
   return 0;
