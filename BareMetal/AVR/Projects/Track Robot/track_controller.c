@@ -1,9 +1,8 @@
 #include <avr/io.h>
 #include <util/delay.h>
-#include <stdlib.h>
-#include <stdio.h>
 
-#define DEBOUNCE_TIME 20
+#define DEBOUNCE_TIME 50
+#define TIMER_OCRA    62      // Rounded up so we dont need to use float math. This is 0.0000000625 * 10^9
 #define BT_UP      PD2
 #define BT_DOWN    PD3
 #define BT_LFT     PD4
@@ -12,7 +11,11 @@
 #define BT_SET     PD7
 #define BT_RST     PB0      // Uses PORTB
 
-uint8_t _DebugMode = 1; 
+uint8_t _DebugMode = 2; 
+uint16_t milliseconds_passed = 0;
+uint16_t seconds_passed = 0;
+uint16_t minutes_passed = 0;
+uint8_t check_time = 0;
 
 uint8_t all_button_defines[7] = {BT_UP, BT_DOWN, 
                                  BT_LFT, BT_RGT, 
@@ -36,15 +39,42 @@ typedef struct _ll_circular{
   Node* tail;
 }LinkedList;
 
-void print_button_action(LinkedList *ll);
+void init_clock(void);
 void init_buttons(void);
+void time_to_check(void);
 void read_button(Button* btn);
-uint8_t init_list(LinkedList* ll);
+void print_button_action(LinkedList *ll);
 uint8_t add_to_list(void);
+uint8_t init_list(LinkedList* ll);
+
+void init_clock(void){
+  TCCR0A |= (1 << WGM01);  // Enabling CTC mode
+  OCR0A = 249;                            // Top value is 255 since its 8bit reg
+  TIMSK0 |= (1 << OCIE0A);
+  TCCR0B = (1 << CS01) | (1 << CS00); // Prescaler 64
+  sei();
+}
+
+ISR(TIMER0_COMPA_vect){
+  milliseconds_passed++;
+  check_time = 1;
+}
+
+void time_to_check(void){
+  if (milliseconds_passed == 1000){
+    seconds_passed++;
+    if (seconds_passed == 60){
+      minutes_passed++;
+      seconds_passed = 0;
+    }
+    milliseconds_passed = 0;
+  }
+}
 
 void init_buttons(void){
   // Configure buttons as inputs
   DDRB &= ~(1 << BT_RST);
+  DDRB |= (1 << PB4);
 
   DDRD &= ~((1 << BT_UP)
           | (1 << BT_DOWN)
@@ -120,41 +150,47 @@ void read_button(Button* btn){
     else{
       reading = PIND & (1 << btn->button_pin) ? 1:0;
     }
-    
-    //reading = btn->button_state;
-
+    _delay_ms(10);
     if (_DebugMode & 1){
       Serial.print("Current Btn State -> ");
       Serial.println(reading);
       Serial.print("Last Btn State -> ");
       Serial.println(btn->last_button_state);
-      _delay_ms(1000);
     }
-    
+
     if (reading != btn->last_button_state) {
-      btn->last_debounce_time = millis(); // Record the time of this change
+      btn->last_debounce_time = milliseconds_passed; // Record the time of this change
       if (_DebugMode & 1){
         Serial.print("last_debounce_time = ");
         Serial.println(btn->last_debounce_time);
       }
     }
-    if ((millis() - btn->last_debounce_time) > DEBOUNCE_TIME) {
+    if ((milliseconds_passed - btn->last_debounce_time) > DEBOUNCE_TIME) {
     // Debounce time has passed, check if the state has stabilized
+      if(_DebugMode & 1){
+        Serial.println("Passed debounced time");
+      }
       if (reading != btn->button_state) {
+        if(_DebugMode & 1){
+          Serial.println("Reading is different than state");
+        }
         btn->button_state = reading;
-        if (reading == LOW) {
+        if (reading == 0) {
             // Button press is confirmed, take appropriate action
             btn->button_action_mode = 1;
             if (_DebugMode & 1){
               Serial.print("button_action_mode = ");
               Serial.println(btn->button_action_mode);
+               //_delay_ms(2000);
             }
+        }
+        else{
+          btn->button_action_mode = 0;
         }
       }
     }
     btn->last_button_state = reading;
   }
-  
 }
 
 void print_button_action(LinkedList *ll){
@@ -175,6 +211,7 @@ void print_button_action(LinkedList *ll){
 
 int main(void){
   uint8_t result;
+  init_clock();
   Serial.begin(9600);
 
   int reading;
@@ -204,12 +241,30 @@ int main(void){
 
   while(1){
     read_button(curNode->button_node);
+    if (curNode->button_node->button_action_mode & 1){
+      PORTB |= (1 << PB4);
+      _delay_ms(100);
+      PORTB &= ~(1 << PB4);
+      _delay_ms(100);
+       if (_DebugMode & 2){
+        Serial.print("LED Button -> ");
+        Serial.println(curNode->button_node->button_pin);
+      }
+    }
+    if (_DebugMode & 2){
+      Serial.print("NONLED Button -> ");
+      Serial.println(curNode->button_node->button_pin);
+    }
+    
     curNode = curNode->next;
     if (curNode == NULL){
       curNode = LL->head;
     }
     //print_button_action(LL);
+    if (_DebugMode & 1){
+      Serial.print("Milliseconds = ");
+      Serial.println(milliseconds_passed);
+    }
   }
-
   return 0;
 }
