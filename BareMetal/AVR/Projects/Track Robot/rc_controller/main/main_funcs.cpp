@@ -26,9 +26,9 @@ void init_pins(void){
 void init_interrupts(void){
   uint8_t oldSREG = SREG;   // get the avr status register
   cli();
-  EICRA |= (1 << ISC01) | (1 << ISC11);
+  EICRA |= (1 << ISC21) | (1 << ISC31);
   EICRB |= (1 << ISC41) | (1 << ISC51);
-  EIMSK |= (1 << INT0) | (1 << INT1) 
+  EIMSK |= (1 << INT2) | (1 << INT3) 
         | (1 << INT4) | (1 << INT5);
   TIMSK3 |= (1 << OCIE3A); // When this bit is written to one, and the I-flag in the Status Register is set (interrupts globally enabled), the
                           //Timer/Countern Output Compare A Match interrupt is enabled.
@@ -65,7 +65,7 @@ void init_clock(void){
   PRR1 &=~ (1 << PRTIM3);
   TCCR3B |= (1 << CS30) | (1 << CS31) | (1 << WGM32);     // set prescaler to 64
   TCCR3A &=~ ((1 << COM3A1) | (1 << COM3A0) | (1 << WGM30)); // make sure its disconnected from the ports
-  OCR0A_3 = 25;
+  OCR3A = 25;
 }
 
 void switch_enc_mode(void){
@@ -74,21 +74,21 @@ void switch_enc_mode(void){
 
 void turn_on_led(Btn* btn){
   // make sure output is turned on;
-  btn->ddr_addr |= (1 << btn->btn);
+  *btn->ddr_addr |= (1 << btn->btn);
 
   // turn on led
-  btn->port_addr |= (1 << btn->btn);
+  *btn->port_addr |= (1 << btn->btn);
 }
 
 void turn_off_led(Btn* btn){
   //just turn off the output
-  btn->ddr_addr &=~ (1 << btn->btn);
+  *btn->ddr_addr &=~ (1 << btn->btn);
 }
 
 int8_t bt_listening(void){
-  (bt_Serial.isListening()) ? return 1 : return 0;
+  return (bt_Serial.isListening()) ? 1 : 0;
 }
 
 int8_t bt_overflow(void){
-  (bt_Serial.overflow()) ? return 1 : return 0;
+  return (bt_Serial.overflow()) ? 1 : 0;
 }
