@@ -1,21 +1,17 @@
-#ifndef BT_SERIAL_H
-#define BT_SERIAL_H
-
-#include <stdint.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef MAIN_FUNCS_H
+#define MAIN_FUNCS_H
 
 #include <avr/io.h>
 #include <util/delay.h>
 #include <SoftwareSerial.h>
+#include <Arduino.h>
 #include <avr/interrupt.h>
+#include <LiquidCrystal_I2C.h>
+#include <Wire.h>
 #include "all_defines.h"
 
 extern int8_t volatile enc_mode;          // set speed by default;
 extern int8_t volatile rx_robot;          // if rx == 1, then we know the robot successfully received the values
-extern double timer;
 
 typedef struct _control{
   int8_t speed;
@@ -37,7 +33,8 @@ typedef struct _ledBtns{
   Btn* bt_state;
 }StateButtons;
 
-extern SoftwareSerial bt_Serial (rxPin, txPin);    // HC-05 is MASTER here
+extern SoftwareSerial bt_Serial;    // HC-05 is MASTER here
+extern LiquidCrystal_I2C lcd(0x27,16,2);
 
 int8_t inline received_from_robot(void);
 uint8_t send_to_robot(int8_t val);
@@ -49,9 +46,5 @@ void turn_on_led(Btn* btn);
 void turn_off_led(Btn* btn);
 int8_t bt_listening(void);
 int8_t bt_overflow(void);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

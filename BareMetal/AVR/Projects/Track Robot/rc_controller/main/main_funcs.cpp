@@ -1,5 +1,9 @@
 #include "main_funcs.h"
 
+double timer = 0;
+
+SoftwareSerial bt_Serial(rxPin, txPin);
+
 int8_t inline received_from_robot(void){
   return bt_Serial.read();
 }
