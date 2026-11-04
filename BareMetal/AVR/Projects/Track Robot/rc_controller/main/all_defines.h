@@ -1,18 +1,21 @@
-#define rxPin         10
-#define txPin         11
-#define LED_TX        6
-#define LED_RX        0
-#define LED_STATE_ERR 0
-#define BTN_MID       PB0
-#define BTN_RHT       PB2
-#define BTN_LFT       PB2
-#define BTN_DWN       0
-#define BTN_UP        2
-#define BTN_SPD       4   // must have interrupt  -> INT4
-#define BTN_STEP      5   // must have interrupt  -> INT5
-#define ENC_S1        PD0   // must have interrupt  -> INT0
-#define ENC_S2        PD1   // must have interrupt  -> INT1
-#define TIMER_INCREMENT 0.00001
+#define rxPin                 10
+#define txPin                 11
+#define LED_TX                6
+#define LED_RX                0
+#define LED_STATE_ERR         0
+#define BTN_MID               PB0
+#define BTN_RHT               PB2
+#define BTN_LFT               PB2
+#define BTN_DWN               0
+#define BTN_UP                2
+#define BTN_SPD               4   // must have interrupt  -> INT4
+#define BTN_STEP              5   // must have interrupt  -> INT5
+#define ENC_S1                PD2   // must have interrupt  -> INT0
+#define ENC_S2                PD3   // must have interrupt  -> INT1
+#define TIMER_INCREMENT       0.00001
+#define ENC_PINS_HIGH         0b00000011
+#define ENC_PINA_READ         0b00000001
+#define ENC_PINB_READ         0b00000010
 
 // Defining vectors from vector table
 #define TIMER3_COMPA        _VECTOR(32)   /* External Interrupt Request 0 */
@@ -20,6 +23,8 @@
 #define INT3                3
 #define INT4                4
 #define INT5                5
+#define INT2_vect           _VECTOR(3)
+#define INT3_vect           _VECTOR(4)
 #define INT4_vect           _VECTOR(5)
 #define INT5_vect           _VECTOR(6)
 

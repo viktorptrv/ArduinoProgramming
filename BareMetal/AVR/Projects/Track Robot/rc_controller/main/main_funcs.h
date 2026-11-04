@@ -1,17 +1,27 @@
 #ifndef MAIN_FUNCS_H
 #define MAIN_FUNCS_H
 
-#include <avr/io.h>
 #include <util/delay.h>
 #include <SoftwareSerial.h>
 #include <Arduino.h>
 #include <avr/interrupt.h>
+#include "all_defines.h"
+#include <avr/io.h>
 #include <LiquidCrystal_I2C.h>
 #include <Wire.h>
-#include "all_defines.h"
 
 extern int8_t volatile enc_mode;          // set speed by default;
 extern int8_t volatile rx_robot;          // if rx == 1, then we know the robot successfully received the values
+extern int8_t volatile aFlag;
+extern int8_t volatile bFlag;
+extern int8_t volatile encPos;
+extern int8_t volatile enc_spd;           // speed
+extern int8_t volatile old_enc_spd;
+extern int8_t volatile enc_stp;           // step
+extern int8_t volatile old_enc_stp;
+extern int8_t volatile reading;
+
+extern double timer;
 
 typedef struct _control{
   int8_t speed;
@@ -34,7 +44,7 @@ typedef struct _ledBtns{
 }StateButtons;
 
 extern SoftwareSerial bt_Serial;    // HC-05 is MASTER here
-extern LiquidCrystal_I2C lcd(0x27,16,2);
+extern LiquidCrystal_I2C lcd;
 
 int8_t inline received_from_robot(void);
 uint8_t send_to_robot(int8_t val);
